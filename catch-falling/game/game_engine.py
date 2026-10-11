@@ -53,12 +53,17 @@ class GameEngine:
         self.basket.move(direction, WIDTH)
 
     def handle_keydown(self, key):
-        if self.game_over and key == pygame.K_r:
+        if key == pygame.K_SPACE:
+            if not self.game_over:
+                self.basket.activate_boost()
+        elif self.game_over and key == pygame.K_r:
             self.__init__()
 
     def update(self):
         if self.game_over:
             return
+
+        self.basket.update()
 
         self.frames_until_spawn -= 1
         if self.frames_until_spawn <= 0:
@@ -67,7 +72,6 @@ class GameEngine:
                 self.frames_until_spawn = random.randint(SPAWN_INTERVAL_MIN, SPAWN_INTERVAL_MAX)
             else:
                 self.frames_until_spawn = 10
-
 
         for obj in self.objects:
             obj.update()
@@ -95,6 +99,21 @@ class GameEngine:
         renderer.draw_text(
             surface, font, f"Misses: {self.misses}/{MAX_MISSES}", (10, 36)
         )
+
+        if self.basket.is_boosted:
+            secs = self.basket.boosted_frames / 60.0
+            renderer.draw_text(
+                surface, font, f"Boost: ACTIVE ({secs:.1f}s)", (10, 62), color=(255, 215, 0)
+            )
+        elif self.basket.can_boost:
+            renderer.draw_text(
+                surface, font, "Boost: READY [SPACE]", (10, 62), color=(100, 220, 100)
+            )
+        else:
+            secs = self.basket.cooldown_frames / 60.0
+            renderer.draw_text(
+                surface, font, f"Boost: Cooldown ({secs:.1f}s)", (10, 62), color=(160, 160, 160)
+            )
 
         if self.game_over:
             renderer.draw_banner(
