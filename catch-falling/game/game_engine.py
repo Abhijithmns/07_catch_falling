@@ -62,11 +62,13 @@ class GameEngine:
             obj.update()
 
         basket_rect = self.basket.get_rect()
-        for obj in self.objects:                  # BUG: mutating this list while iterating over it
+        remaining = []
+        for obj in self.objects:
             if is_caught(basket_rect, obj):
                 self.score += 1
-                self.objects.remove(obj)
-
+            else:
+                remaining.append(obj)
+        self.objects = remaining
         missed = [o for o in self.objects if o.is_past_bottom(HEIGHT)]
         if missed:
             self.objects = [o for o in self.objects if not o.is_past_bottom(HEIGHT)]
@@ -76,9 +78,16 @@ class GameEngine:
 
     def draw(self, surface, font):
         from game import renderer
+
         renderer.draw_scene(surface, self.basket, self.objects)
         renderer.draw_text(surface, font, f"Score: {self.score}", (10, 10))
-        renderer.draw_text(surface, font, f"Misses: {self.misses}/{MAX_MISSES}", (10, 36))
+        renderer.draw_text(
+            surface, font, f"Misses: {self.misses}/{MAX_MISSES}", (10, 36)
+        )
 
         if self.game_over:
-            renderer.draw_banner(surface, font, f"Game Over! Final score: {self.score}. Press R to restart.")
+            renderer.draw_banner(
+                surface,
+                font,
+                f"Game Over! Final score: {self.score}. Press R to restart.",
+            )
